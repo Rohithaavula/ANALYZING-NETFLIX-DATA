@@ -1,0 +1,410 @@
+---
+title: "Analyzing Netflix data"
+author: "Rohitha"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+
+
+## Some of the interesting questions (tasks) which can be performed on this dataset -
+
+- Understanding what content is available in different countries
+- Identifying similar content by matching text-based features
+- Network analysis of Actors / Directors and find interesting insights
+- Is Netflix has increasingly focusing on TV rather than movies in recent years.
+- What types of genres are more in demand over the years
+
+
+### Lets Read the data and have a look at some basic things:
+
+```{r message=FALSE,warning=FALSE}
+
+#reading the data
+netflixdf <- read.csv("netflix_titles.csv")
+attach(netflixdf)
+
+require(dplyr)
+require(highcharter)
+#let's see the distribution on type of shows on Netflix:
+table(type)
+
+#let's check summary statistics of the dataset
+summary(netflixdf)
+
+```
+
+
+
+
+### Let's start with analyzing  the Genres on Netflix
+
+How the Genre of shows on Neflix relates to the other interesting variables in the dataset like country of origin, year released, type and ratings.
+
+```{r message=FALSE,warning=FALSE}
+
+#let's check top Genre of shows in netflix:
+
+Genre_df <- netflixdf %>%
+  group_by(listed_in) %>% 
+  summarise(Count = n()) %>% 
+  arrange(desc(Count)) %>% 
+  top_n(30)
+   
+
+#let's plot the most produced  genres:
+
+hchart(Genre_df,hcaes(x=listed_in,y=Count),type="column",color="#062D67",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Barplot of top 30 genres produced on Netflix",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+
+
+```
+Shockingly there are most __"documentaries"__ on Netflix followe by __"Stand up Comedy"__ shows.
+
+
+Let's check what genres were released what year.
+
+
+```{r  warning=FALSE,message=FALSE}
+
+
+year_genref  <- netflixdf %>% 
+  filter(listed_in %in% Genre_df$listed_in)  %>% 
+  select(listed_in,release_year) %>% 
+  group_by(release_year,listed_in) %>% 
+  mutate(Count = n())  %>% 
+  arrange(desc(Count)) %>% 
+  arrange(desc(release_year))
+  
+  
+#creating dataframes for all years
+
+year_2019 <- year_genref %>% 
+  filter(release_year == "2019") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+year_2020 <- year_genref %>% 
+  filter(release_year == "2020") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+year_2018 <- year_genref %>% 
+  filter(release_year == "2018") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+year_2017 <- year_genref %>% 
+  filter(release_year == "2017") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+year_2016 <- year_genref %>% 
+  filter(release_year == "2016") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+year_2015 <- year_genref %>% 
+  filter(release_year == "2015") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount= n()) %>% 
+  arrange(desc(nCount))
+
+```
+
+
+### Let's plot the above data for last 5 years.
+
+
+#### For year 2019
+
+```{r ,message=FALSE,warning=FALSE,echo=FALSE}
+
+  hchart(year_2019,hcaes(x=listed_in,y=nCount),type="column",color="blue",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Year 2019",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+  
+```  
+  
+In 2019, most of the shows produced and released on Netflix were __Stand-Up comedy__ shows followed by __Documentaries__.  
+  
+#### For year 2018
+  
+```{r ,echo=FALSE,message=FALSE,warning=FALSE}
+
+  hchart(year_2018,hcaes(x=listed_in,y=nCount),type="column",color="green",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Year 2018 ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+  
+  
+```
+
+
+
+
+#### For year 2017
+
+```{r ,echo=FALSE,message=FALSE,warning=FALSE}
+
+  hchart(year_2017,hcaes(x=listed_in,y=nCount),type="column",color="orange",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Year 2017 ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+ 
+```
+
+
+
+
+#### For year 2016
+
+```{r ,echo=FALSE,message=FALSE,warning=FALSE}
+
+  hchart(year_2016,hcaes(x=listed_in,y=nCount),type="column",color="purple",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Year 2016 ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+
+```
+
+
+#### For year 2015
+
+```{r ,echo=FALSE,message=FALSE,warning=FALSE}
+
+  hchart(year_2015,hcaes(x=listed_in,y=nCount),type="column",color="red",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Year 2015 ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+  
+```
+
+We can actually notice the popularity and demand of __stand-up comedy__ shows growing in the past 5 years in the above plots.
+
+
+
+
+
+### Let's check the relation between Country and the Top Genres
+
+
+Here we will try to find which country produces which kinds of shows. First let's check which Country produces the most shows for Netflix.
+
+```{r, message=FALSE,warning=FALSE}
+
+
+top_country <- netflixdf %>% 
+  select(country) %>% 
+  group_by(country) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount)) %>% 
+  top_n(20)
+
+#setting missing column as NA
+top_country[3,] <- NA
+top_country <- na.omit(top_country)
+
+top_country
+
+```
+
+So most of the shows are produced by following countries:
+1) US
+2) India
+3) UK
+4) Japan
+5) Canada
+6) South Korea
+
+
+
+```{r  message=FALSE,warning=FALSE}
+
+#now lets filter top countries and the top genres
+
+country_df <- netflixdf %>% 
+  filter(listed_in %in% Genre_df$listed_in  & country %in% top_country$country) %>% 
+  select(listed_in,country) %>% 
+  group_by(listed_in, country) %>% 
+  mutate(nCount = n())
+
+
+```
+
+
+
+
+
+
+```{r message=FALSE,warning=FALSE}
+
+US_shows <- country_df  %>% 
+  filter(country=="United States") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+
+
+India_shows <- country_df  %>% 
+  filter(country=="India") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+
+
+
+UK_shows <- country_df  %>% 
+  filter(country=="United Kingdom") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+  
+
+Japan_shows <- country_df  %>% 
+  filter(country=="Japan") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+
+
+Canada_shows <- country_df  %>% 
+  filter(country=="Canada") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+  
+  
+SK_shows <- country_df  %>% 
+  filter(country=="South Korea") %>% 
+  group_by(listed_in) %>% 
+  summarise(nCount = n()) %>% 
+  arrange(desc(nCount))
+  
+
+
+```
+
+
+### Let's plot the data for all top countries
+
+
+
+
+
+#### 1)Types of shows in US 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+hchart(US_shows,hcaes(x=listed_in,y=nCount),type="column",color="#FF6666",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in US ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+```
+
+
+
+#### 2)Types of shows in India 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+hchart(India_shows,hcaes(x=listed_in,y=nCount),type="column",color="#6666FF",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in India ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+```
+
+
+
+#### 3)Types of shows in UK
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+hchart(UK_shows,hcaes(x=listed_in,y=nCount),type="column",color="#FF66FF",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in UK ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+```
+
+
+
+#### 4)Types of shows Canada
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+hchart(US_shows,hcaes(x=listed_in,y=nCount),type="column",color="#404040",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Canada",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+```
+
+
+
+#### 5)Types of shows in Japan
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+
+hchart(Japan_shows,hcaes(x=listed_in,y=nCount),type="column",color="#CCE5FF",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in Japan ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+
+```
+
+
+#### 6)Types of shows in South Korea 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+
+hchart(SK_shows,hcaes(x=listed_in,y=nCount),type="column",color="#FFFF99",name="Count") %>% 
+  hc_exporting(enabled = TRUE) %>%
+  hc_title(text="Top Genres of shows produced in South Korea ",align="center") %>%
+  hc_add_theme(hc_theme_elementary()) 
+
+```
+
+
+
+
+------------------------
+
+
+
+### Genre and Type of Show
+
+
+Let's check which genres are which types of shows(Movies/TV Series).
+
+```{r message=FALSE,warning=FALSE}
+
+type_Df <- netflixdf %>% 
+  select(type,listed_in) %>% 
+  filter(listed_in  %in%  Genre_df$listed_in) %>% 
+  group_by(listed_in,type) %>% 
+  mutate(nCount=n())
+
+
+
+```
+
+
+
+
